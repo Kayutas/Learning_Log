@@ -2,5 +2,5 @@
 # Platform.sh project. The name of the service is used in the routes
 
 db: 
-    type: postgresql:12
+    type: postgresql:15
     disk: 1024
