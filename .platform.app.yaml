@@ -1,5 +1,5 @@
 name: "ll_project"
-type: "python 3.12"
+type: "Python 3.12.5"
 
 relationships:
     database: "db:postgresql"
