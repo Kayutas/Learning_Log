@@ -19,7 +19,9 @@ urlpatterns = [
     # Page for adding new entry.
     path('new_entry/<int:topic_id>/', views.new_entry, name='new_entry'),
     path('edit_entry/<int:entry_id>/', views.edit_entry, name='edit_entry'),
-    
-    
+    path('public_topics/', views.public_topics, name='public_topics'),
+    path('make_public/<int:topic_id>/', views.make_public, name='make_public'),
+    path('topics/<int:topic_id>/make_private/', views.make_private, name='make_private'),
+   
          
 ]

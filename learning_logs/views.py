@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.http import Http404
 
@@ -27,12 +27,17 @@ def topics(request):
     context = {'topics': topics}
     return render(request, 'learning_logs/topics.html', context)
 
-@login_required
+
 def topic(request, topic_id):
     """Show a single topic and all its entries."""
-    topic = Topic.objects.get(id=topic_id)
-    check_topic_owner(topic, request)
-    
+    topic = get_object_or_404(Topic, id=topic_id)
+
+    if not topic.public:
+        if not request.user.is_authenticated:
+            raise Http404("You must be logged in to view this topic.")
+        if topic.owner != request.user:
+            raise Http404("You do not have permission to view this topic.")
+        
     entries = topic.entry_set.order_by('-date_added')
     context = {'topic': topic, 'entries': entries}
     return render(request, 'learning_logs/topic.html', context)
@@ -60,6 +65,32 @@ def new_topic(request):
     # Display a blank or invalid form.
     context = {'form': form}
     return render(request, 'learning_logs/new_topic.html', context)
+
+
+def public_topics(request):
+    """Show all public topics."""
+    public_topics = Topic.objects.filter(public=True).order_by('date_added')
+    context = {'public_topics': public_topics}
+    return render(request, 'learning_logs/public_topics.html', context)
+
+
+@login_required
+def make_public(request, topic_id):
+    print("Make public view called")
+    topic = Topic.objects.get(id=topic_id)
+    check_topic_owner(topic, request)
+    topic.public = True
+    topic.save()
+    return redirect('learning_logs:topic', topic_id=topic_id)
+
+
+@login_required
+def make_private(request, topic_id):
+    topic = Topic.objects.get(id=topic_id)
+    check_topic_owner(topic, request)
+    topic.public = False
+    topic.save()
+    return redirect('learning_logs:topic', topic_id=topic_id)
 
 
 @login_required

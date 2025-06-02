@@ -1,34 +1,48 @@
 {% extends 'learning_logs/base.html'%}
 
 {% block page_header %}
-  <h1>{{ topic.text}}</h1>
+  <h1>{{ topic.text }}</h1>
+  {% if topic.owner == request.user %}
+    <div class="mb-3">
+      Status: {% if topic.public %}Public{% else %}Private{% endif %}
+      {% if topic.public %}
+        <form action="{% url 'learning_logs:make_private' topic.id %}" method="post" class="d-inline">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-warning btn-sm">Make Private</button>
+        </form>
+      {% else %}
+        <form action="{% url 'learning_logs:make_public' topic.id %}" method="post" class="d-inline">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-success btn-sm">Make Public</button>
+        </form>
+      {% endif %}
+    </div>
+  {% endif %}
 {% endblock page_header %}
 
 {% block content %}
-
-
+  {% if topic.owner == request.user %}
     <p>
-        <a href="{% url 'learning_logs:new_entry' topic.id %}">Add new entry</a>
+      <a href="{% url 'learning_logs:new_entry' topic.id %}" class="btn btn-primary">Add new entry</a>
     </p>
+  {% endif %}
 
-    
-        {% for entry in entries %}
-            <div class="card mb-3">
-                <!-- Card haeader with timestamp and edit link-->
-                <h4 class="card-header">
-                    {{ entry.date_added|date:'M d, Y H:i'  }}
-                    <small><a href="{% url 'learning_logs:edit_entry' entry.id %}">
-                        edit entry</a></small>
-                </h4>
-                <!-- Card body with entry text -->
-                 <div class="card-body">{{ entry.text|linebreaks}}</div>
-            </div>
-
-        {% empty %}
-            <p>There are no entries for this topic yet.</p>
-        {% endfor %}
-    </ul>
-
-
+  {% for entry in entries %}
+    <div class="card mb-3">
+      <h4 class="card-header">
+        {{ entry.date_added|date:'M d, Y H:i' }}
+        {% if topic.owner == request.user %}
+          <small>
+            <a href="{% url 'learning_logs:edit_entry' entry.id %}" class="btn btn-sm btn-outline-secondary">
+              edit entry
+            </a>
+          </small>
+        {% endif %}
+      </h4>
+      <div class="card-body">{{ entry.text|linebreaks }}</div>
+    </div>
+  {% empty %}
+    <p>There are no entries for this topic yet.</p>
+  {% endfor %}
 {% endblock content %}
 
