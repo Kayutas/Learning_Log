@@ -1,0 +1,33 @@
+{% extends 'learning_logs/base.html' %}
+
+{% block page_header %}
+    <h1>Search Results</h1>
+{% endblock page_header %}
+
+{% block content %}
+    <div class="mb-4">
+        <form method="GET" action="{% url 'learning_logs:search' %}" class="d-flex">
+            <input type="text" name="q" class="form-control me-2" placeholder="Search topics..." value="{{ query }}">
+            <button type="submit" class="btn btn-outline-primary">Search</button>
+        </form>
+    </div>
+
+    {% if query %}
+        <h4>Results for "{{ query }}":</h4>
+    {% endif %}
+
+    <div class="list-group">
+        {% for topic in topics %}
+            <div class="list-group-item">
+                <h5 class="mb-1">
+                    <a href="{% url 'learning_logs:topic' topic.id %}" class="text-decoration-none">
+                        {{ topic.text }}
+                    </a>
+                </h5>
+                <small class="text-muted">Created by {{ topic.owner.username }} on {{ topic.date_added|date:"M d, Y" }}</small>
+            </div>
+        {% empty %}
+            <p>No topics found{% if query %} matching "{{ query }}"{% endif %}.</p>
+        {% endfor %}
+    </div>
+{% endblock content %}

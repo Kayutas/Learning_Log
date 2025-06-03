@@ -22,6 +22,6 @@ urlpatterns = [
     path('public_topics/', views.public_topics, name='public_topics'),
     path('make_public/<int:topic_id>/', views.make_public, name='make_public'),
     path('topics/<int:topic_id>/make_private/', views.make_private, name='make_private'),
-   
+    path('search/', views.search_topics, name='search'),
          
 ]

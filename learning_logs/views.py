@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.http import Http404
+from django.db.models import Q
 
 from .models import Topic, Entry
 from .forms import TopicForm, EntryForm
@@ -115,6 +116,25 @@ def new_entry(request, topic_id):
     context = {'topic': topic, 'form' :form}
     return render(request, 'learning_logs/new_entry.html', context)
 
+@login_required
+def search_topics(request):
+    """Search for topics and entries."""
+    query = request.GET.get('q', '')
+    if query:
+        # Search in both public topics and their entries
+        topics = Topic.objects.filter(
+            Q(public=True) & 
+            (Q(text__icontains=query) | Q(entry__text__icontains=query))
+        ).distinct()
+    else:
+        topics = Topic.objects.filter(public=True)
+    
+    context = {
+        'topics': topics,
+        'query': query,
+    }
+    return render(request, 'learning_logs/search_results.html', context)
+        
 
 @login_required
 def edit_entry(request, entry_id):

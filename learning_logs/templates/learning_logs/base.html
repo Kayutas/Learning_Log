@@ -33,7 +33,13 @@
                                 My Topics</a>
                         </li>
                     {% endif %}
-                </ul> <!-- End of links on left side of navbar-->
+                </ul>
+                
+                <!-- Add this search form -->
+                <form class="d-flex me-auto" method="GET" action="{% url 'learning_logs:search' %}">
+                    <input class="form-control me-2" type="search" name="q" placeholder="Search topics..." aria-label="Search">
+                    <button class="btn btn-outline-primary" type="submit">Search</button>
+                </form>
                 
                 <!-- Account-related links-->
                 <ul class="navbar-nav ms-auto mb-2 mb-md-0">
