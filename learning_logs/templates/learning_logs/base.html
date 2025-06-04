@@ -32,6 +32,14 @@
                             <a class="nav-link" href="{% url 'learning_logs:topics' %}">
                                 My Topics</a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'learning_logs:following_list' %}">
+                                Following</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'learning_logs:user_profile' user.username %}">
+                                My Profile</a>
+                        </li>
                     {% endif %}
                 </ul>
                 

@@ -2,9 +2,11 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.http import Http404
 from django.db.models import Q
+from django.contrib.auth.models import User
+from .models import Topic, Entry, Category, Following
+from django.contrib import messages
 
-from .models import Topic, Entry
-from .forms import TopicForm, EntryForm
+from .forms import TopicForm, EntryForm, CategoryForm
 
 # Create your views here.
 
@@ -157,4 +159,102 @@ def edit_entry(request, entry_id):
     context = {'entry': entry, 'topic': topic, 'form': form}
     return render(request, 'learning_logs/edit_entry.html', context)
 
+@login_required
+def categories(request):
+    """Show all categories and their topics."""
+    categories = Category.objects.all().order_by('name')
+    for category in categories:
+        if request.user.is_authenticated:
+            # Show public topics and user's private topics
+            category.topics = Topic.objects.filter(
+                category=category
+            ).filter(
+                Q(public=True) | Q(owner=request.user)
+            ).order_by('-date_added')
+        else:
+            # Show only public topics
+            category.topics = Topic.objects.filter(
+                category=category, public=True
+            ).order_by('-date_added')
+    
+    context = {'categories': categories}
+    return render(request, 'learning_logs/categories.html', context)
+
+@login_required
+def new_category(request):
+    """Add a new category."""
+    if request.method != 'POST':
+        form = CategoryForm()
+    else:
+        form = CategoryForm(data=request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('learning_logs:categories')
+            
+    context = {'form': form}
+    return render(request, 'learning_logs/new_category.html', context)
+
+@login_required
+def category(request, category_id):
+    """Show a single category and all its topics."""
+    category = get_object_or_404(Category, id=category_id)
+    if request.user.is_authenticated:
+        # Show public topics and user's private topics
+        topics = Topic.objects.filter(
+            category=category
+        ).filter(
+            Q(public=True) | Q(owner=request.user)
+        ).order_by('-date_added')
+    else:
+        # Show only public topics
+        topics = Topic.objects.filter(
+            category=category, public=True
+        ).order_by('-date_added')
+    
+    context = {'category': category, 'topics': topics}
+    return render(request, 'learning_logs/category.html', context)
+
+@login_required
+def user_profile(request, username):
+    """Show user profile and their public topics."""
+    user = get_object_or_404(User, username=username)
+    topics = Topic.objects.filter(owner=user, public=True).order_by('-date_added')
+    is_following = Following.objects.filter(follower=request.user, followed=user).exists() if request.user.is_authenticated else False
+    followers_count = Following.objects.filter(followed=user).count()
+    following_count = Following.objects.filter(follower=user).count()
+    
+    context = {
+        'profile_user': user,
+        'topics': topics,
+        'is_following': is_following,
+        'followers_count': followers_count,
+        'following_count': following_count,
+    }
+    return render(request, 'learning_logs/user_profile.html', context)
+
+@login_required
+def follow_user(request, username):
+    """Follow or unfollow a user."""
+    user_to_follow = get_object_or_404(User, username=username)
+    
+    if request.user == user_to_follow:
+        messages.error(request, "You cannot follow yourself.")
+        return redirect('learning_logs:user_profile', username=username)
+    
+    following = Following.objects.filter(follower=request.user, followed=user_to_follow)
+    if following.exists():
+        following.delete()
+        messages.success(request, f"You have unfollowed {username}")
+    else:
+        Following.objects.create(follower=request.user, followed=user_to_follow)
+        messages.success(request, f"You are now following {username}")
+    
+    return redirect('learning_logs:user_profile', username=username)
+
+@login_required
+def following_list(request):
+    """Show list of users the current user is following."""
+    following = Following.objects.filter(follower=request.user).select_related('followed')
+    context = {'following': following}
+    return render(request, 'learning_logs/following_list.html', context)
             

@@ -23,5 +23,11 @@ urlpatterns = [
     path('make_public/<int:topic_id>/', views.make_public, name='make_public'),
     path('topics/<int:topic_id>/make_private/', views.make_private, name='make_private'),
     path('search/', views.search_topics, name='search'),
-         
+    path('categories/', views.categories, name='categories'),
+    path('categories/<int:category_id>/', views.category, name='category'),
+    path('new_category/', views.new_category, name='new_category'),
+    # User profiles and following
+    path('user/<str:username>/', views.user_profile, name='user_profile'),
+    path('user/<str:username>/follow/', views.follow_user, name='follow_user'),
+    path('following/', views.following_list, name='following_list'),
 ]

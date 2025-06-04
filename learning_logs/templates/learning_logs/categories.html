@@ -1,0 +1,53 @@
+{% extends 'learning_logs/base.html' %}
+
+{% block page_header %}
+    <h1>Categories</h1>
+{% endblock page_header %}
+
+{% block content %}
+    {% if user.is_authenticated %}
+        <p>
+            <a href="{% url 'learning_logs:new_category' %}" class="btn btn-primary mb-3">Add new category</a>
+        </p>
+    {% endif %}
+
+    <div class="row">
+        {% for category in categories %}
+            <div class="col-md-6 mb-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h4>
+                            <a href="{% url 'learning_logs:category' category.id %}" class="text-decoration-none">
+                                {{ category.name }}
+                            </a>
+                        </h4>
+                    </div>
+                    <div class="card-body">
+                        {% if category.description %}
+                            <p class="card-text">{{ category.description }}</p>
+                        {% endif %}
+                        <h6 class="card-subtitle mb-2 text-muted">Topics in this category:</h6>
+                        <ul class="list-unstyled">
+                            {% for topic in category.topics|slice:":5" %}
+                                <li>
+                                    <a href="{% url 'learning_logs:topic' topic.id %}" class="text-decoration-none">
+                                        {{ topic.text }}
+                                    </a>
+                                </li>
+                            {% empty %}
+                                <li>No topics in this category yet.</li>
+                            {% endfor %}
+                        </ul>
+                        {% if category.topics.count > 5 %}
+                            <a href="{% url 'learning_logs:category' category.id %}" class="card-link">
+                                View all {{ category.topics.count }} topics...
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <p>No categories have been created yet.</p>
+        {% endfor %}
+    </div>
+{% endblock content %} 
