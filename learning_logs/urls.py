@@ -30,4 +30,6 @@ urlpatterns = [
     path('user/<str:username>/', views.user_profile, name='user_profile'),
     path('user/<str:username>/follow/', views.follow_user, name='follow_user'),
     path('following/', views.following_list, name='following_list'),
+    # Comments
+    path('comment/<int:comment_id>/delete/', views.delete_comment, name='delete_comment'),
 ]

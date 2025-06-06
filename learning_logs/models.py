@@ -61,3 +61,17 @@ class Following(models.Model):
         
     def __str__(self):
         return f"{self.follower.username} follows {self.followed.username}"
+
+
+class Comment(models.Model):
+    """Comments on topics."""
+    topic = models.ForeignKey(Topic, on_delete=models.CASCADE, related_name='comments')
+    author = models.ForeignKey(User, on_delete=models.CASCADE)
+    text = models.TextField()
+    date_added = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        ordering = ['-date_added']
+        
+    def __str__(self):
+        return f"{self.author.username}'s comment on {self.topic.text}"

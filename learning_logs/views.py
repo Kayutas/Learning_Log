@@ -3,10 +3,10 @@ from django.contrib.auth.decorators import login_required
 from django.http import Http404
 from django.db.models import Q
 from django.contrib.auth.models import User
-from .models import Topic, Entry, Category, Following
+from .models import Topic, Entry, Category, Following, Comment
 from django.contrib import messages
 
-from .forms import TopicForm, EntryForm, CategoryForm
+from .forms import TopicForm, EntryForm, CategoryForm, CommentForm
 
 # Create your views here.
 
@@ -42,7 +42,27 @@ def topic(request, topic_id):
             raise Http404("You do not have permission to view this topic.")
         
     entries = topic.entry_set.order_by('-date_added')
-    context = {'topic': topic, 'entries': entries}
+    comments = topic.comments.all()  # Get all comments for this topic
+    
+    # Handle new comment submission
+    if request.method == 'POST' and request.user.is_authenticated:
+        comment_form = CommentForm(data=request.POST)
+        if comment_form.is_valid():
+            new_comment = comment_form.save(commit=False)
+            new_comment.topic = topic
+            new_comment.author = request.user
+            new_comment.save()
+            messages.success(request, "Comment added successfully!")
+            return redirect('learning_logs:topic', topic_id=topic_id)
+    else:
+        comment_form = CommentForm()
+    
+    context = {
+        'topic': topic, 
+        'entries': entries,
+        'comments': comments,
+        'comment_form': comment_form if request.user.is_authenticated else None,
+    }
     return render(request, 'learning_logs/topic.html', context)
 
 
@@ -257,4 +277,19 @@ def following_list(request):
     following = Following.objects.filter(follower=request.user).select_related('followed')
     context = {'following': following}
     return render(request, 'learning_logs/following_list.html', context)
+
+@login_required
+def delete_comment(request, comment_id):
+    """Delete a comment."""
+    comment = get_object_or_404(Comment, id=comment_id)
+    
+    # Check if the user is the comment author or the topic owner
+    if request.user != comment.author and request.user != comment.topic.owner:
+        messages.error(request, "You don't have permission to delete this comment.")
+        return redirect('learning_logs:topic', topic_id=comment.topic.id)
+    
+    topic_id = comment.topic.id
+    comment.delete()
+    messages.success(request, "Comment deleted successfully!")
+    return redirect('learning_logs:topic', topic_id=topic_id)
             

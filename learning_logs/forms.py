@@ -1,6 +1,6 @@
 from django import forms
 
-from .models import Topic, Entry, Category
+from .models import Topic, Entry, Category, Comment
 
 
 class CategoryForm(forms.ModelForm):
@@ -30,3 +30,11 @@ class EntryForm(forms.ModelForm):
         fields = ['text', 'public']
         labels = {'text': '', 'public': 'Make this topic public'}
         widgets = {'text': forms.Textarea(attrs={'cols': 80})}
+
+
+class CommentForm(forms.ModelForm):
+    class Meta:
+        model = Comment
+        fields = ['text']
+        labels = {'text': 'Comment'}
+        widgets = {'text': forms.Textarea(attrs={'rows': 3})}

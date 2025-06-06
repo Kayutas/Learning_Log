@@ -1,4 +1,5 @@
-{% extends 'learning_logs/base.html'%}
+{% extends "learning_logs/base.html" %}
+{% load django_bootstrap5 %}
 
 {% block page_header %}
   <h1>{{ topic.text }}</h1>
@@ -27,22 +28,56 @@
     </p>
   {% endif %}
 
-  {% for entry in entries %}
-    <div class="card mb-3">
-      <h4 class="card-header">
-        {{ entry.date_added|date:'M d, Y H:i' }}
-        {% if topic.owner == request.user %}
-          <small>
-            <a href="{% url 'learning_logs:edit_entry' entry.id %}" class="btn btn-sm btn-outline-secondary">
-              edit entry
-            </a>
-          </small>
-        {% endif %}
-      </h4>
-      <div class="card-body">{{ entry.text|linebreaks }}</div>
+  <div class="card-columns">
+    {% for entry in entries %}
+      <div class="card mb-3">
+        <div class="card-body">
+          <p>{{ entry.text|linebreaks }}</p>
+          <div class="card-footer text-muted">
+            <p>{{ entry.date_added|date:'M d, Y H:i' }}</p>
+          </div>
+          {% if topic.owner == request.user %}
+            <p><a href="{% url 'learning_logs:edit_entry' entry.id %}">Edit entry</a></p>
+          {% endif %}
+        </div>
+      </div>
+    {% empty %}
+      <p>No entries for this topic yet.</p>
+    {% endfor %}
+  </div>
+
+  <!-- Comments Section -->
+  <div class="mt-5">
+    <h4>Comments</h4>
+    {% if request.user.is_authenticated %}
+      <form method="post" class="mb-4">
+        {% csrf_token %}
+        {% bootstrap_form comment_form %}
+        <button type="submit" class="btn btn-primary">Add Comment</button>
+      </form>
+    {% else %}
+      <p><a href="{% url 'accounts:login' %}">Log in</a> to add comments.</p>
+    {% endif %}
+
+    <div class="list-group">
+      {% for comment in comments %}
+        <div class="list-group-item">
+          <div class="d-flex justify-content-between align-items-center">
+            <h6 class="mb-1">{{ comment.author.username }}</h6>
+            <small class="text-muted">{{ comment.date_added|date:'M d, Y H:i' }}</small>
+          </div>
+          <p class="mb-1">{{ comment.text|linebreaks }}</p>
+          {% if request.user == comment.author or request.user == topic.owner %}
+            <form method="post" action="{% url 'learning_logs:delete_comment' comment.id %}" class="d-inline">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+            </form>
+          {% endif %}
+        </div>
+      {% empty %}
+        <p>No comments yet.</p>
+      {% endfor %}
     </div>
-  {% empty %}
-    <p>There are no entries for this topic yet.</p>
-  {% endfor %}
+  </div>
 {% endblock content %}
 
